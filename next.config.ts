@@ -1,26 +1,38 @@
 // next.config.js
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true, // Or whatever your existing config is
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
-        port: '', // Optional, defaults to '' (empty string) for http/https
-        pathname: '/dnlczwmgv/image/upload/**', // Your Cloudinary cloud name and standard path
-                                              // The double asterisk (**) is a wildcard for any subpaths
+        pathname: '/dnlczwmgv/image/upload/**', // 'dnlczwmgv' is your cloud name
       },
-      // You can add other patterns here if you use other external image hosts
-      // For example, if you were still using Unsplash placeholders:
-      // {
-      //   protocol: 'https',
-      //   hostname: 'images.unsplash.com',
-      // },
+      // You can add other domains here if needed for other images in your app
+      // e.g., { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
-  // ... any other configurations you have
+  // If you use any other Next.js specific configurations, they go here
 };
 
 module.exports = nextConfig;
+
+// If you are using @tailwindcss/aspect-ratio, your tailwind.config.js should have it in plugins:
+/*
+// tailwind.config.js
+module.exports = {
+  content: [
+    "./src/pages/** /*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/** /*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/** /*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [
+    require('@tailwindcss/aspect-ratio'), // Make sure this is installed and added
+    // other plugins...
+  ],
+};
+*/

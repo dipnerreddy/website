@@ -3,28 +3,22 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import FsLightbox from 'fslightbox-react'; // Import FsLightbox
+import FsLightbox from 'fslightbox-react';
+import { GalleryImageType } from '@/app/gallery/page'; // Import the type from page.tsx
 
-interface GalleryImage {
-  id: string;
-  url: string;
-  width: number;
-  height: number;
-  alt: string;
+interface ImageGridProps {
+  initialImagesData: GalleryImageType[] | { error: string };
 }
 
-const ImageGrid = () => {
-  const [images, setImages] = useState<GalleryImage[]>([]);
-  const [loading, setLoading] = useState(true);
+const ImageGrid: React.FC<ImageGridProps> = ({ initialImagesData }) => {
+  const [images, setImages] = useState<GalleryImageType[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // State for the lightbox
   const [lightboxController, setLightboxController] = useState({
-    toggler: false, // To open/close the lightbox
-    slide: 1,       // To set which image to show first (1-indexed)
+    toggler: false,
+    slide: 1,
   });
 
-  // Function to open the lightbox at a specific image
   function openLightboxOnSlide(slideNumber: number) {
     setLightboxController({
       toggler: !lightboxController.toggler,
@@ -33,82 +27,101 @@ const ImageGrid = () => {
   }
 
   useEffect(() => {
-    const fetchImages = async () => {
-      setLoading(true);
+    if (initialImagesData && 'error' in initialImagesData) {
+      setError(initialImagesData.error);
+      setImages([]);
+      console.error("ImageGrid received error:", initialImagesData.error);
+    } else if (initialImagesData && Array.isArray(initialImagesData)) {
+      setImages(initialImagesData);
       setError(null);
-      try {
-        const response = await fetch('/api/gallery-images');
-        if (!response.ok) {
-          let errorData;
-          try {
-            errorData = await response.json();
-          } catch (parseError) {
-            throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-          }
-          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (!Array.isArray(data)) {
-            throw new Error("Invalid data format received from API.");
-        }
-        setImages(data);
-      } catch (e: any) {
-        setError(e.message || 'An unknown error occurred');
-        console.error("Failed to load images:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImages();
-  }, []);
-
-  if (loading) {
-    return <p className="text-center text-black text-black-lg py-10">Loading gallery...</p>;
-  }
+    } else {
+      setError("Invalid initial data for gallery.");
+      setImages([]);
+      console.error("ImageGrid received invalid initialImagesData:", initialImagesData);
+    }
+  }, [initialImagesData]);
 
   if (error) {
-    return <p className="text-center text-red-500 py-10">Error loading gallery: {error}</p>;
+    return (
+      <section className="py-10 md:py-16">
+        <div className="container mx-auto px-2 sm:px-4 md:px-6 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-10 md:mb-12">
+            Photo Gallery
+          </h2>
+          <p className="text-xl text-red-600">Error loading gallery: {error}</p>
+          <p className="text-slate-500 mt-2">Please try again later or contact support.</p>
+        </div>
+      </section>
+    );
   }
 
-  if (images.length === 0) {
-    return <p className="text-center text-black text-black-lg py-10">No images in the gallery yet.</p>;
+  // Show a loading or empty state if images are not yet populated but no error
+  // This handles the initial render before useEffect sets the images from props
+  if (images.length === 0 && !error) { // Added !error condition
+    // Check if initialImagesData was passed but just resulted in empty images (not an error)
+    const wasDataProcessed = initialImagesData && (Array.isArray(initialImagesData) || 'error' in initialImagesData);
+    if (!wasDataProcessed) {
+        // This could be an initial "loading from prop" state if desired, though with RSC it should be immediate.
+        // For now, if initialImagesData isn't there yet (shouldn't happen with RSC), show "No images"
+         return (
+            <section className="py-10 md:py-16">
+                <div className="container mx-auto px-2 sm:px-4 md:px-6 text-center">
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-10 md:mb-12">
+                    Photo Gallery
+                </h2>
+                <p className="text-xl text-slate-600">Loading gallery...</p> {/* Or a spinner */}
+                </div>
+            </section>
+        );
+    }
+    // If data was processed and images array is still empty (and no error)
+    return (
+      <section className="py-10 md:py-16">
+        <div className="container mx-auto px-2 sm:px-4 md:px-6 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-10 md:mb-12">
+            Photo Gallery
+          </h2>
+          <p className="text-xl text-slate-600">No images in the gallery yet. Check back soon!</p>
+        </div>
+      </section>
+    );
   }
+
 
   return (
-    <section className="py-10 md:py-16 bg-slate-50">
-      <div className="container mx-auto px-4 md:px-6">
+    <section className="py-10 md:py-16 bg-[#F8F9FA]">
+      <div className="container mx-auto px-2 sm:px-4 md:px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-slate-800 text-center mb-10 md:mb-12">
           Photo Gallery
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
           {images.map((image, index) => (
             <div
               key={image.id}
-              className="aspect-square bg-gray-200 rounded-md overflow-hidden cursor-pointer group relative shadow-md hover:shadow-lg transition-shadow"
-              onClick={() => openLightboxOnSlide(index + 1)} // Open lightbox, pass 1-based index
+              className="aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden cursor-pointer group relative shadow-md hover:shadow-lg transition-all duration-300 ease-in-out"
+              onClick={() => openLightboxOnSlide(index + 1)}
+              title={`View ${image.alt}`}
             >
               <Image
                 src={image.url}
-                alt={image.alt || `Gallery image ${index + 1}`}
-                layout="fill"
-                objectFit="cover"
-                className="transition-transform duration-300 group-hover:scale-110"
+                alt={image.alt}
+                fill 
+                className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
-                priority={index < 10}
+                priority={index < 10} 
               />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Render the FsLightbox component */}
-      <FsLightbox
-        toggler={lightboxController.toggler}
-        sources={images.map(img => img.url)} // Pass an array of image URLs
-        slide={lightboxController.slide}
-        // types={images.map(() => 'image')} // Optional: if you have mixed content types
-      />
+      {images.length > 0 && (
+        <FsLightbox
+          toggler={lightboxController.toggler}
+          sources={images.map(img => img.url)}
+          slide={lightboxController.slide}
+        />
+      )}
     </section>
   );
 };

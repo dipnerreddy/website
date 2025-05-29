@@ -1,15 +1,15 @@
 // src/components/alumni/AlumniDisplay.tsx
 "use client";
 
-import React, { useEffect, useState } from 'react'; // Removed useMemo as it wasn't being used
-import Papa from 'papaparse';
+import React, { useEffect, useState } from 'react';
+import Papa, { PapaParseError, PapaParseResult } from 'papaparse';
 import AlumniCard from './AlumniCard';
 
 interface Alumnus {
-  ID?: string;
+  ID?: string; // Make ID optional if not always present or used as key
   Name: string;
   PassoutYear: string;
-  MobileNumber: string;
+  MobileNumber: string; // Consider privacy if displaying this
   ImageUrl: string;
 }
 
@@ -38,41 +38,48 @@ const AlumniDisplay = () => {
           download: true,
           header: true,
           skipEmptyLines: true,
-          complete: (results) => {
+          complete: (results: PapaParseResult<Alumnus>) => {
             if (results.errors.length > 0) {
-              console.error("CSV Parsing errors:", results.errors);
-              setError("Error parsing alumni data. Check CSV format.");
+              console.error("CSV Parsing errors (Alumni):", results.errors);
+              const errorMessages = results.errors.map(err => err.message).join(', ');
+              setError(`Error parsing alumni data. Details: ${errorMessages}. Please check CSV format/headers.`);
               setLoading(false);
               return;
             }
-            const typedData = (results.data as Alumnus[]).filter(
-              (item) => item.Name && item.PassoutYear // Filter out rows with missing essential data
+            const typedData = results.data.filter(
+              (item) => item.Name && item.PassoutYear
             );
             setAllAlumni(typedData);
 
             const years = [
-              ...new Set(typedData.map((a) => a.PassoutYear.trim()).filter(Boolean)), // Trim and filter empty years
-            ].sort((a, b) => parseInt(b) - parseInt(a));
+              ...new Set(typedData.map((a) => a.PassoutYear.trim()).filter(Boolean)),
+            ].sort((a, b) => parseInt(b, 10) - parseInt(a, 10)); // Ensure radix 10
             setAvailableYears(years);
-            if (years.length > 0) {
+            if (years.length > 0 && !selectedYear) { // Set initial selected year only if not already set
               setSelectedYear(years[0]);
             }
             setLoading(false);
           },
-          error: (err: any) => {
-            console.error("PapaParse download error:", err);
-            setError("Failed to download or parse alumni data.");
+          error: (err: PapaParseError) => {
+            console.error("PapaParse Download/Parse Error (Alumni):", err);
+            setError(`Failed to download or parse alumni data. Error: ${err.message || 'Unknown PapaParse error'}`);
             setLoading(false);
           }
         });
-      } catch (e: any) {
-        setError(e.message || "An unknown error occurred while fetching data.");
+      } catch (e) {
+        let errorMessage = "An unknown error occurred while fetching alumni data.";
+        if (e instanceof Error) {
+            errorMessage = e.message;
+        } else if (typeof e === 'string') {
+            errorMessage = e;
+        }
+        setError(errorMessage);
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, []); // Empty dependency array means fetch only on mount
 
   useEffect(() => {
     if (selectedYear && allAlumni.length > 0) {
@@ -80,42 +87,64 @@ const AlumniDisplay = () => {
         .filter(alumnus => alumnus.PassoutYear === selectedYear)
         .sort((a, b) => a.Name.localeCompare(b.Name));
       setFilteredAlumni(filtered);
+    } else if (!selectedYear && allAlumni.length > 0) { // If no year selected, show all or none based on UX preference
+      setFilteredAlumni([]); // Or setFilteredAlumni(allAlumni) to show all by default
     } else {
       setFilteredAlumni([]);
     }
   }, [selectedYear, allAlumni]);
 
-  if (loading) {
-    return <p className="text-center text-black text-lg py-10">Loading alumni data...</p>;
-  }
-
-  if (error) {
-    return <p className="text-center text-red-500 py-10">Error: {error}</p>;
-  }
+  const renderContent = () => {
+    if (loading) {
+      return <p className="text-center text-slate-600">Loading alumni data...</p>;
+    }
+    if (error) {
+      return <p className="text-center text-red-500">Error: {error}</p>;
+    }
+    if (filteredAlumni.length > 0) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredAlumni.map((alumnus, index) => (
+            <AlumniCard
+              key={alumnus.ID || `${selectedYear}-${index}`} // Ensure unique key
+              name={alumnus.Name}
+              passoutYear={alumnus.PassoutYear}
+              mobileNumber={alumnus.MobileNumber}
+              imageUrl={alumnus.ImageUrl}
+            />
+          ))}
+        </div>
+      );
+    }
+    if (selectedYear) {
+      return <p className="text-center text-slate-600">No alumni found for the year {selectedYear}.</p>;
+    }
+    if (allAlumni.length > 0 && !selectedYear) {
+      return <p className="text-center text-slate-600">Please select a year to view alumni.</p>;
+    }
+    return <p className="text-center text-slate-600">No alumni data available at the moment.</p>;
+  };
 
   return (
-    <section className="py-10 md:py-16 bg-slate-50"> {/* This was bg-slate-50, matching other page sections */}
+    <section className="py-10 md:py-16 bg-slate-50">
       <div className="container mx-auto px-4 md:px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-slate-800 text-center mb-8 md:mb-10">
           Our Esteemed Alumni
         </h2>
 
-        {availableYears.length > 0 && (
-          <div className="mb-8 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4"> {/* Reduced gap for smaller screens */}
-            <label htmlFor="year-select" className="font-medium text-slate-700 mb-2 sm:mb-0"> {/* Added margin bottom for mobile */}
+        {!loading && !error && availableYears.length > 0 && (
+          <div className="mb-8 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+            <label htmlFor="year-select" className="font-medium text-slate-700 mb-2 sm:mb-0">
               Select Passout Year:
             </label>
             <select
               id="year-select"
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              // ADDED text-slate-900 or text-black
               className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-slate-900 bg-white"
             >
-              {/* You can add a default "Select Year" option if desired */}
-              {/* <option value="" disabled={selectedYear !== ''}>-- Select a Year --</option> */}
+              <option value="">-- All Years --</option> {/* Or remove if you always want a year selected */}
               {availableYears.map(year => (
-                // Option tags can also have text color, but select's color often dictates the displayed one
                 <option key={year} value={year} className="text-slate-800">
                   {year}
                 </option>
@@ -123,24 +152,7 @@ const AlumniDisplay = () => {
             </select>
           </div>
         )}
-
-        {filteredAlumni.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredAlumni.map((alumnus, index) => (
-              <AlumniCard
-                key={alumnus.ID || index}
-                name={alumnus.Name}
-                passoutYear={alumnus.PassoutYear}
-                mobileNumber={alumnus.MobileNumber}
-                imageUrl={alumnus.ImageUrl}
-              />
-            ))}
-          </div>
-        ) : (
-          selectedYear && <p className="text-center text-slate-600">No alumni found for the year {selectedYear}.</p>
-        )}
-         {!selectedYear && allAlumni.length > 0 && <p className="text-center text-slate-600">Please select a year to view alumni.</p>}
-         {allAlumni.length === 0 && !loading && <p className="text-center text-slate-600">No alumni data available at the moment.</p>}
+        {renderContent()}
       </div>
     </section>
   );
