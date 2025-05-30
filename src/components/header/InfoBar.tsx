@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 const InfoBar = () => {
   const mailTo = "radianthighschoolnunna@gmail.com";
-  const phoneTo = "+919848822882";
+  const phoneTo = "+918317651237";
   const mapLink = "https://maps.app.goo.gl/W8ADBFULWZRgQrVz5";
 
   const navItems = [

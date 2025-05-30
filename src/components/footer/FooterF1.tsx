@@ -35,8 +35,8 @@ const FooterF1 = () => {
             Jagga Reddy Street, Nunna<br />
             Vijayawada, Andhra Pradesh<br />
             Krishna District, 521212<br />
-            <a href="tel:+919848822882" className="hover:underline font-bold">
-              P: +91-9848822882
+            <a href="tel:+918317651237" className="hover:underline font-bold">
+              P: +91-8317651237
             </a><br />
             <a href="mailto:radianthighschoolnunna@gmail.com" className="hover:underline font-bold">
               E: radianthighschoolnunna@gmail.com
