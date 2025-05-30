@@ -20,7 +20,7 @@ const HomeComponent1 = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      const csvUrl = process.env.NEXT_PUBLIC_TICKER_NEWS_CSV_URL;
+      const csvUrl ="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ159bxYa9s5V2caxlvgcYoUec7gJnfCjf2sObot2JsMWEKc2m4m74zoqKESOPSv07Qx27kaXJnJsyZ/pub?gid=0&single=true&output=csv";
 
       if (!csvUrl) {
         console.warn("HomeComponent1: Ticker news data source URL is not configured. Using default news.");
