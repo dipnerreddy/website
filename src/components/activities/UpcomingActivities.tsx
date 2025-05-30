@@ -1,13 +1,12 @@
-// src/components/activities/UpcomingActivities.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Papa, { PapaParseError, PapaParseResult } from 'papaparse';
+import Papa, { ParseError, ParseResult } from 'papaparse';
 
 interface UpcomingEvent {
   ID: string;
   Name: string;
-  Date: string; // Assuming YYYY-MM-DD or a parseable date string
+  Date: string;
   Time?: string;
   Venue?: string;
   Description: string;
@@ -31,11 +30,11 @@ const UpcomingActivities = () => {
       }
 
       try {
-        Papa.parse(csvUrl, {
+        Papa.parse<UpcomingEvent>(csvUrl as string, {
           download: true,
           header: true,
           skipEmptyLines: true,
-          complete: (results: PapaParseResult<UpcomingEvent>) => {
+          complete: (results: ParseResult<UpcomingEvent>) => {
             if (results.errors.length > 0) {
               console.error("CSV Parsing errors (Upcoming Activities):", results.errors);
               const errorMessages = results.errors.map(err => err.message).join(', ');
@@ -43,14 +42,16 @@ const UpcomingActivities = () => {
               setLoading(false);
               return;
             }
-            const typedData = results.data.filter(item => item.ID && item.Name && item.Date && item.Description); // Basic validation
+
+            const typedData = results.data.filter(item => item.ID && item.Name && item.Date && item.Description);
             const sortedData = typedData.sort(
-              (a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime() // Ascending for upcoming
+              (a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime()
             );
+
             setUpcomingEvents(sortedData);
             setLoading(false);
           },
-          error: (err: PapaParseError) => {
+          error: (err: Error) => {
             console.error("PapaParse Download/Parse Error (Upcoming Activities):", err);
             setError(`Failed to download or parse upcoming activities data. Error: ${err.message || 'Unknown PapaParse error'}`);
             setLoading(false);
@@ -59,14 +60,15 @@ const UpcomingActivities = () => {
       } catch (e) {
         let errorMessage = "An unknown error occurred while fetching upcoming activities data.";
         if (e instanceof Error) {
-            errorMessage = e.message;
+          errorMessage = e.message;
         } else if (typeof e === 'string') {
-            errorMessage = e;
+          errorMessage = e;
         }
         setError(errorMessage);
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
@@ -80,6 +82,7 @@ const UpcomingActivities = () => {
     if (upcomingEvents.length === 0) {
       return <p className="text-center text-slate-600">No upcoming activities scheduled. Please check back soon!</p>;
     }
+
     return (
       <div className="flex overflow-x-auto space-x-4 md:space-x-6 pb-4 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-200">
         {upcomingEvents.map((event) => (
@@ -89,13 +92,23 @@ const UpcomingActivities = () => {
           >
             <h3 className="text-lg font-semibold text-slate-700 mb-1">{event.Name}</h3>
             <p className="text-sm text-blue-700 font-medium mb-2">
-              {new Date(event.Date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {new Date(event.Date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
             </p>
-            {event.Time && <p className="text-xs text-slate-500"><strong>Time:</strong> {event.Time}</p>}
-            {event.Venue && <p className="text-xs text-slate-500 mb-2"><strong>Venue:</strong> {event.Venue}</p>}
-            <p className="text-sm text-slate-600 leading-relaxed">
-              {event.Description}
-            </p>
+            {event.Time && (
+              <p className="text-xs text-slate-500">
+                <strong>Time:</strong> {event.Time}
+              </p>
+            )}
+            {event.Venue && (
+              <p className="text-xs text-slate-500 mb-2">
+                <strong>Venue:</strong> {event.Venue}
+              </p>
+            )}
+            <p className="text-sm text-slate-600 leading-relaxed">{event.Description}</p>
           </div>
         ))}
       </div>

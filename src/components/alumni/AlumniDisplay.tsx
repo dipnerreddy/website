@@ -1,15 +1,14 @@
-// src/components/alumni/AlumniDisplay.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Papa, { PapaParseError, PapaParseResult } from 'papaparse';
+import Papa, { ParseResult } from 'papaparse';
 import AlumniCard from './AlumniCard';
 
 interface Alumnus {
-  ID?: string; // Make ID optional if not always present or used as key
+  ID?: string;
   Name: string;
   PassoutYear: string;
-  MobileNumber: string; // Consider privacy if displaying this
+  MobileNumber: string;
   ImageUrl: string;
 }
 
@@ -34,11 +33,11 @@ const AlumniDisplay = () => {
       }
 
       try {
-        Papa.parse(csvUrl, {
+        Papa.parse<Alumnus>(csvUrl, {
           download: true,
           header: true,
           skipEmptyLines: true,
-          complete: (results: PapaParseResult<Alumnus>) => {
+          complete: (results: ParseResult<Alumnus>) => {
             if (results.errors.length > 0) {
               console.error("CSV Parsing errors (Alumni):", results.errors);
               const errorMessages = results.errors.map(err => err.message).join(', ');
@@ -46,32 +45,29 @@ const AlumniDisplay = () => {
               setLoading(false);
               return;
             }
-            const typedData = results.data.filter(
-              (item) => item.Name && item.PassoutYear
-            );
+            const typedData = results.data.filter(item => item.Name && item.PassoutYear);
             setAllAlumni(typedData);
 
-            const years = [
-              ...new Set(typedData.map((a) => a.PassoutYear.trim()).filter(Boolean)),
-            ].sort((a, b) => parseInt(b, 10) - parseInt(a, 10)); // Ensure radix 10
+            const years = [...new Set(typedData.map(a => a.PassoutYear.trim()).filter(Boolean))]
+              .sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
             setAvailableYears(years);
-            if (years.length > 0 && !selectedYear) { // Set initial selected year only if not already set
+            if (years.length > 0 && !selectedYear) {
               setSelectedYear(years[0]);
             }
             setLoading(false);
           },
-          error: (err: PapaParseError) => {
-            console.error("PapaParse Download/Parse Error (Alumni):", err);
-            setError(`Failed to download or parse alumni data. Error: ${err.message || 'Unknown PapaParse error'}`);
+          error: (error: Error, file: File | string) => {
+            console.error("PapaParse Download/Parse Error (Alumni):", error);
+            setError(`Failed to download or parse alumni data. Error: ${error.message || 'Unknown PapaParse error'}`);
             setLoading(false);
           }
         });
       } catch (e) {
         let errorMessage = "An unknown error occurred while fetching alumni data.";
         if (e instanceof Error) {
-            errorMessage = e.message;
+          errorMessage = e.message;
         } else if (typeof e === 'string') {
-            errorMessage = e;
+          errorMessage = e;
         }
         setError(errorMessage);
         setLoading(false);
@@ -79,7 +75,7 @@ const AlumniDisplay = () => {
     };
 
     fetchData();
-  }, []); // Empty dependency array means fetch only on mount
+  }, []);
 
   useEffect(() => {
     if (selectedYear && allAlumni.length > 0) {
@@ -87,8 +83,8 @@ const AlumniDisplay = () => {
         .filter(alumnus => alumnus.PassoutYear === selectedYear)
         .sort((a, b) => a.Name.localeCompare(b.Name));
       setFilteredAlumni(filtered);
-    } else if (!selectedYear && allAlumni.length > 0) { // If no year selected, show all or none based on UX preference
-      setFilteredAlumni([]); // Or setFilteredAlumni(allAlumni) to show all by default
+    } else if (!selectedYear && allAlumni.length > 0) {
+      setFilteredAlumni([]);
     } else {
       setFilteredAlumni([]);
     }
@@ -106,7 +102,7 @@ const AlumniDisplay = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredAlumni.map((alumnus, index) => (
             <AlumniCard
-              key={alumnus.ID || `${selectedYear}-${index}`} // Ensure unique key
+              key={alumnus.ID || `${selectedYear}-${index}`}
               name={alumnus.Name}
               passoutYear={alumnus.PassoutYear}
               mobileNumber={alumnus.MobileNumber}
@@ -143,7 +139,7 @@ const AlumniDisplay = () => {
               onChange={(e) => setSelectedYear(e.target.value)}
               className="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-slate-900 bg-white"
             >
-              <option value="">-- All Years --</option> {/* Or remove if you always want a year selected */}
+              <option value="">-- All Years --</option>
               {availableYears.map(year => (
                 <option key={year} value={year} className="text-slate-800">
                   {year}

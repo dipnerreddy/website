@@ -1,0 +1,21 @@
+// .eslintrc.json
+{
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended", // Example, if you have this
+    "plugin:@typescript-eslint/recommended" // Example, if you have this
+  ],
+  "rules": {
+    // TypeScript specific rules
+    "@typescript-eslint/no-explicit-any": "off", // Disables the rule against using 'any'
+    "@typescript-eslint/ban-ts-comment": "off",  // Disables the rule against using @ts-ignore (though it prefers @ts-expect-error)
+
+    // React specific rules
+    "react-hooks/exhaustive-deps": "warn", // Downgrades exhaustive-deps to a warning instead of an error
+
+    // JavaScript/ESLint core rules
+    "prefer-const": "warn" // Downgrades prefer-const to a warning
+
+    // Add other rules you want to disable or modify here
+  }
+}

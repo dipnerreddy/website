@@ -1,8 +1,7 @@
-// src/components/faculty/CommitteesSection.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Papa, { PapaParseError, PapaParseResult } from 'papaparse';
+import Papa, { ParseResult } from 'papaparse';
 
 interface Committee {
   ID: string;
@@ -29,11 +28,11 @@ const CommitteesSection = () => {
       }
 
       try {
-        Papa.parse(csvUrl, {
+        Papa.parse<Committee>(csvUrl, {
           download: true,
           header: true,
           skipEmptyLines: true,
-          complete: (results: PapaParseResult<Committee>) => {
+          complete: (results: ParseResult<Committee>) => {
             if (results.errors.length > 0) {
               console.error("CSV Parsing errors (Committees):", results.errors);
               const errorMessages = results.errors.map(err => err.message).join(', ');
@@ -45,18 +44,18 @@ const CommitteesSection = () => {
             setCommittees(typedData);
             setLoading(false);
           },
-          error: (err: PapaParseError) => {
+          error: (err: Error) => {
             console.error("PapaParse Download/Parse Error (Committees):", err);
-            setError(`Failed to download or parse committees data. Error: ${err.message || 'Unknown PapaParse error'}`);
+            setError(`Failed to download or parse committee data. Error: ${err.message || 'Unknown PapaParse error'}`);
             setLoading(false);
           }
         });
       } catch (e) {
         let errorMessage = "An unknown error occurred while fetching committees data.";
         if (e instanceof Error) {
-            errorMessage = e.message;
+          errorMessage = e.message;
         } else if (typeof e === 'string') {
-            errorMessage = e;
+          errorMessage = e;
         }
         setError(errorMessage);
         setLoading(false);
@@ -67,16 +66,16 @@ const CommitteesSection = () => {
 
   const renderContent = () => {
     if (loading) {
-        return <p className="text-center text-slate-600">Loading committee information...</p>;
+      return <p className="text-center text-slate-600">Loading committee information...</p>;
     }
     if (error) {
-        return <p className="text-center text-red-500">Error: {error}</p>;
+      return <p className="text-center text-red-500">Error: {error}</p>;
     }
     if (committees.length === 0) {
-        return <p className="text-center text-slate-600">Committee information coming soon.</p>;
+      return <p className="text-center text-slate-600">Committee information coming soon.</p>;
     }
     return (
-        <div className="space-y-8 max-w-3xl mx-auto">
+      <div className="space-y-8 max-w-3xl mx-auto">
         {committees.map((committee) => (
           <div key={committee.ID} className="bg-slate-50 p-6 rounded-lg shadow-md border border-gray-200">
             <h3 className="text-xl font-semibold text-blue-700 mb-2">{committee.Name}</h3>

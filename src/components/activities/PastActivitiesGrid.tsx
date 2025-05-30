@@ -1,14 +1,13 @@
-// src/components/activities/PastActivitiesGrid.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Papa, { PapaParseError, PapaParseResult } from 'papaparse';
+import Papa, { ParseError, ParseResult } from 'papaparse';
 import PastActivityCard from './PastActivityCard';
 
 interface PastEvent {
   ID: string;
   Name: string;
-  Date: string; // Assuming YYYY-MM-DD or a parseable date string
+  Date: string; // Format: YYYY-MM-DD or similar
   Description?: string;
   ImageUrl: string;
 }
@@ -22,6 +21,7 @@ const PastActivitiesGrid = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
+
       const csvUrl = process.env.NEXT_PUBLIC_PAST_ACTIVITIES_CSV_URL;
 
       if (!csvUrl) {
@@ -31,11 +31,11 @@ const PastActivitiesGrid = () => {
       }
 
       try {
-        Papa.parse(csvUrl, {
+        Papa.parse<PastEvent>(csvUrl, {
           download: true,
           header: true,
           skipEmptyLines: true,
-          complete: (results: PapaParseResult<PastEvent>) => {
+          complete: (results: ParseResult<PastEvent>) => {
             if (results.errors.length > 0) {
               console.error("CSV Parsing errors (Past Activities):", results.errors);
               const errorMessages = results.errors.map(err => err.message).join(', ');
@@ -43,30 +43,33 @@ const PastActivitiesGrid = () => {
               setLoading(false);
               return;
             }
-            const typedData = results.data.filter(item => item.ID && item.Name && item.Date); // Basic validation
+
+            const typedData = results.data.filter(item => item.ID && item.Name && item.Date);
             const sortedData = typedData.sort(
               (a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime()
             );
+
             setPastEvents(sortedData);
             setLoading(false);
           },
-          error: (err: PapaParseError) => {
+          error: (err: Error, file: string) => {
             console.error("PapaParse Download/Parse Error (Past Activities):", err);
-            setError(`Failed to download or parse past activities data. Error: ${err.message || 'Unknown PapaParse error'}`);
+            setError(`Failed to download or parse past activities data. Error: ${err.message || 'Unknown error'}`);
             setLoading(false);
           }
         });
       } catch (e) {
         let errorMessage = "An unknown error occurred while fetching past activities data.";
         if (e instanceof Error) {
-            errorMessage = e.message;
+          errorMessage = e.message;
         } else if (typeof e === 'string') {
-            errorMessage = e;
+          errorMessage = e;
         }
         setError(errorMessage);
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 

@@ -1,8 +1,7 @@
-// src/components/faculty/FacultyGrid.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Papa, { PapaParseError, PapaParseResult } from 'papaparse';
+import Papa, { ParseResult } from 'papaparse';
 import FacultyCard from './FacultyCard'; // Assuming FacultyCard.tsx exists and is correct
 
 interface FacultyMember {
@@ -31,11 +30,11 @@ const FacultyGrid = () => {
       }
 
       try {
-        Papa.parse(csvUrl, {
+        Papa.parse<FacultyMember>(csvUrl, {
           download: true,
           header: true,
           skipEmptyLines: true,
-          complete: (results: PapaParseResult<FacultyMember>) => {
+          complete: (results: ParseResult<FacultyMember>) => {
             if (results.errors.length > 0) {
               console.error("CSV Parsing errors (Faculty):", results.errors);
               const errorMessages = results.errors.map(err => err.message).join(', ');
@@ -43,13 +42,12 @@ const FacultyGrid = () => {
               setLoading(false);
               return;
             }
-            const typedData = results.data
-             .filter(item => item.ID && item.Name && item.Qualification); // Basic validation
+            const typedData = results.data.filter(item => item.ID && item.Name && item.Qualification);
             const sortedData = typedData.sort((a, b) => a.Name.localeCompare(b.Name));
             setFacultyMembers(sortedData);
             setLoading(false);
           },
-          error: (err: PapaParseError) => {
+          error: (err: Error) => {
             console.error("PapaParse Download/Parse Error (Faculty):", err);
             setError(`Failed to download or parse faculty data. Error: ${err.message || 'Unknown PapaParse error'}`);
             setLoading(false);
@@ -58,9 +56,9 @@ const FacultyGrid = () => {
       } catch (e) {
         let errorMessage = "An unknown error occurred while fetching faculty data.";
         if (e instanceof Error) {
-            errorMessage = e.message;
+          errorMessage = e.message;
         } else if (typeof e === 'string') {
-            errorMessage = e;
+          errorMessage = e;
         }
         setError(errorMessage);
         setLoading(false);
@@ -71,16 +69,16 @@ const FacultyGrid = () => {
 
   const renderContent = () => {
     if (loading) {
-        return <p className="text-center text-slate-600">Loading faculty information...</p>;
+      return <p className="text-center text-slate-600">Loading faculty information...</p>;
     }
     if (error) {
-        return <p className="text-center text-red-500">Error: {error}</p>;
+      return <p className="text-center text-red-500">Error: {error}</p>;
     }
     if (facultyMembers.length === 0) {
-        return <p className="text-center text-slate-600">Faculty information coming soon.</p>;
+      return <p className="text-center text-slate-600">Faculty information coming soon.</p>;
     }
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
         {facultyMembers.map((faculty) => (
           <FacultyCard
             key={faculty.ID}

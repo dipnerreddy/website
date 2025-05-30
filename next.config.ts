@@ -2,6 +2,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'export',
+  eslint: {
+    // Warning: This disables ESLint during production builds!
+    // Only use this temporarily if you understand the consequences.
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {

@@ -2,13 +2,17 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Papa, { PapaParseError, PapaParseResult } from 'papaparse';
+import Papa, { ParseError, ParseResult, ParseRemoteConfig } from 'papaparse';
 import { FiFlag, FiAward, FiHome, FiTrendingUp, FiCheckCircle, FiStar } from 'react-icons/fi';
 
 const IconMap: { [key: string]: React.ElementType } = {
-  Home: FiHome, Milestone: FiTrendingUp, Award: FiAward, Flag: FiFlag, Achievement: FiCheckCircle, Star: FiStar,
-  // Add more mappings if your CSV uses other IconName values
-  Default: FiStar, // A default icon
+  Home: FiHome,
+  Milestone: FiTrendingUp,
+  Award: FiAward,
+  Flag: FiFlag,
+  Achievement: FiCheckCircle,
+  Star: FiStar,
+  Default: FiStar,
 };
 
 interface TimelineEventData {
@@ -16,8 +20,8 @@ interface TimelineEventData {
   Year: string;
   Title: string;
   Description: string;
-  IconName: string; // Should match keys in IconMap
-  ColorClass: string; // e.g., "blue-500" or "bg-blue-500"
+  IconName: string;
+  ColorClass: string;
 }
 
 const HistoryTimeline = () => {
@@ -29,75 +33,104 @@ const HistoryTimeline = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      const csvUrl = process.env.NEXT_PUBLIC_TIMELINE_EVENTS_CSV_URL;
-      if (!csvUrl) {
+
+      const csvUrlFromEnv = process.env.NEXT_PUBLIC_TIMELINE_EVENTS_CSV_URL;
+
+      if (!csvUrlFromEnv) {
         setError("Timeline events data source URL is not configured.");
         setLoading(false);
         return;
       }
-      try {
-        Papa.parse(csvUrl, {
-          download: true,
-          header: true,
-          skipEmptyLines: true,
-          complete: (results: PapaParseResult<TimelineEventData>) => {
-            if (results.errors.length > 0) {
-              console.error("CSV Parsing Errors (Timeline):", results.errors);
-              // Provide a more specific error based on results.errors if possible
-              const errorMessages = results.errors.map(err => err.message).join(', ');
-              setError(`Error parsing timeline data. Details: ${errorMessages}. Please check CSV format/headers.`);
-              setLoading(false);
-              return;
-            }
-            const data = results.data
-                          .filter(item => item.ID && item.Year && item.Title && item.Description && item.ColorClass && item.IconName);
 
-            const sorted = data.sort((a, b) => {
-              if (a.Year === 'Present') return 1;
-              if (b.Year === 'Present') return -1;
-              const yearA = parseInt(a.Year.split('-')[0], 10); // Ensure radix 10
-              const yearB = parseInt(b.Year.split('-')[0], 10); // Ensure radix 10
-              return !isNaN(yearA) && !isNaN(yearB) ? yearA - yearB : a.Year.localeCompare(b.Year);
-            });
-            setTimelineEvents(sorted);
+      const csvUrl: string = csvUrlFromEnv;
+
+      const papaConfig: ParseRemoteConfig<TimelineEventData> = {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (results: ParseResult<TimelineEventData>) => {
+          if (results.errors.length > 0) {
+            console.error("CSV Parsing Errors (Timeline):", results.errors);
+            const errorMessages = results.errors.map(err => err.message).join(', ');
+            setError(`Error parsing timeline data. Details: ${errorMessages}. Please check CSV format/headers.`);
             setLoading(false);
-          },
-          error: (err: PapaParseError) => {
-            console.error("PapaParse Download/Parse Error (Timeline):", err);
-            setError(`Failed to download or parse timeline data. Error: ${err.message || 'Unknown PapaParse error'}`);
-            setLoading(false);
+            return;
           }
-        });
+
+          const data = (results.data || []).filter(
+            item =>
+              item.ID &&
+              item.Year &&
+              item.Title &&
+              item.Description &&
+              item.ColorClass &&
+              item.IconName
+          );
+
+          const sorted = data.sort((a, b) => {
+            if (a.Year === 'Present') return 1;
+            if (b.Year === 'Present') return -1;
+            const yearA = parseInt(a.Year.split('-')[0], 10);
+            const yearB = parseInt(b.Year.split('-')[0], 10);
+            return !isNaN(yearA) && !isNaN(yearB) ? yearA - yearB : a.Year.localeCompare(b.Year);
+          });
+
+          setTimelineEvents(sorted);
+          setLoading(false);
+        },
+      //  error: (err: Error, file: string) => {
+      //   console.error("PapaParse Download/Parse Error (Timeline):", err);
+      //   let errorMessage = "Failed to download or parse timeline data.";
+      //   if (err?.message) {
+      //     errorMessage += ` Error: ${err.message}`;
+      //   }
+      //   setError(errorMessage);
+      //   setLoading(false);
+      // }
+      error: (err: Error, file: string) => {
+        console.error("PapaParse Download/Parse Error (Timeline):", err);
+        let errorMessage = "Failed to download or parse timeline data.";
+        if (err?.message) {
+          errorMessage += ` Error: ${err.message}`;
+        }
+        setError(errorMessage);
+        setLoading(false);
+      }
+      };
+
+      try {
+        Papa.parse<TimelineEventData>(csvUrl, papaConfig);
       } catch (e) {
         let errorMessage = "An unknown error occurred while fetching timeline data.";
         if (e instanceof Error) {
-            errorMessage = e.message;
+          errorMessage = e.message;
         } else if (typeof e === 'string') {
-            errorMessage = e;
+          errorMessage = e;
         }
         setError(errorMessage);
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
   const renderIcon = (iconName: string) => {
-    const IconComponent = IconMap[iconName] || IconMap.Default; // Fallback to a default icon
+    const IconComponent = IconMap[iconName] || IconMap.Default;
     return <IconComponent className="text-slate-900" size={20} />;
   };
 
   const getBorderColorStyle = (colorClass: string): string => {
     if (colorClass && colorClass.startsWith('bg-')) {
-      return colorClass.substring(3); // e.g., "bg-blue-500" -> "blue-500"
+      return colorClass.substring(3);
     }
-    return colorClass || 'transparent'; // Use directly or fallback
+    return colorClass || 'transparent';
   };
-
 
   if (loading) return <p className="text-center text-slate-600 py-10">Loading timeline...</p>;
   if (error) return <p className="text-center text-red-500 py-10">Error: {error}</p>;
   if (timelineEvents.length === 0 && !loading && !error) return <p className="text-center text-slate-600 py-10">Timeline information coming soon.</p>;
+  if (timelineEvents.length === 0) return null;
 
   return (
     <section className="py-12 md:py-20 bg-white">
@@ -144,8 +177,10 @@ const HistoryTimeline = () => {
                           : `transparent ${borderColorValue} transparent transparent`
                       }}
                     ></div>
-                    <h3 className={`hidden md:block text-xl font-semibold text-slate-700 mb-1`}>{event.Year} - {event.Title}</h3>
-                    <p className={`text-md text-slate-600 leading-relaxed`}>
+                    <h3 className={`hidden md:block text-xl font-semibold text-slate-700 mb-1`}>
+                      {event.Year} - {event.Title}
+                    </h3>
+                    <p className="text-md text-slate-600 leading-relaxed">
                       {event.Description}
                     </p>
                   </div>
