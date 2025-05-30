@@ -21,7 +21,7 @@ const UpcomingActivities = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      const csvUrl = process.env.NEXT_PUBLIC_UPCOMING_ACTIVITIES_CSV_URL;
+      const csvUrl ="https://docs.google.com/spreadsheets/d/e/2PACX-1vTrkRp5vkmX0aKlGVxst66Mnq-XuqeXbHdhbFauTgJEZuWVjjX9Q0YejBpDruiQpdTskwf4qwmhLsEa/pub?gid=0&single=true&output=csv";
 
       if (!csvUrl) {
         setError("Upcoming activities data source URL is not configured.");

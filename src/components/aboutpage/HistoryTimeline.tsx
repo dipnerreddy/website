@@ -34,7 +34,7 @@ const HistoryTimeline = () => {
       setLoading(true);
       setError(null);
 
-      const csvUrlFromEnv = process.env.NEXT_PUBLIC_TIMELINE_EVENTS_CSV_URL;
+      const csvUrlFromEnv ="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1UzCy7EhMQB4YYYQM8aH-2QNXL90Ld4Pha9Zqzn7koV6HMIhdg1-Aou6CyDnDP5T75fzYMf6quQOt/pub?gid=0&single=true&output=csv";
 
       if (!csvUrlFromEnv) {
         setError("Timeline events data source URL is not configured.");

@@ -24,7 +24,7 @@ const AlumniDisplay = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      const csvUrl = process.env.NEXT_PUBLIC_ALUMNI_DATA_CSV_URL;
+      const csvUrl ="https://docs.google.com/spreadsheets/d/e/2PACX-1vTPF3cK2MkFUDBgTgfhGC4ISftxdIbRu0YWFm17lruJq62n_rIMSuc3TUwkzv0ZahNmIMvNXv36h0YD/pub?gid=0&single=true&output=csv";
 
       if (!csvUrl) {
         setError("Alumni data source URL is not configured.");

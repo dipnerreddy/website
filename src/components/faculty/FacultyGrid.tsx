@@ -21,7 +21,7 @@ const FacultyGrid = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      const csvUrl = process.env.NEXT_PUBLIC_FACULTY_DATA_CSV_URL;
+      const csvUrl ="https://docs.google.com/spreadsheets/d/e/2PACX-1vTYTBoa8azbKXmIxRo2McW6Ov4vUNoiJIIxXIoyFwUYSj0a1VL7X9vreDnbFbScwz_kGOxHiDyeLURm/pub?gid=0&single=true&output=csv";
 
       if (!csvUrl) {
         setError("Faculty data source URL is not configured.");

@@ -22,7 +22,7 @@ const PastActivitiesGrid = () => {
       setLoading(true);
       setError(null);
 
-      const csvUrl = process.env.NEXT_PUBLIC_PAST_ACTIVITIES_CSV_URL;
+      const csvUrl ="https://docs.google.com/spreadsheets/d/e/2PACX-1vRIZqNbh5KVhe7nA66WjxHQEh2LNqvmxz3wmw46rG7jA8yEhJoF2a4YepGhxG92OyAlCi683F4EfnrO/pub?gid=2089880172&single=true&output=csv";
 
       if (!csvUrl) {
         setError("Past activities data source URL is not configured.");

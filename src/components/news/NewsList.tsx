@@ -30,7 +30,7 @@ const NewsList = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      const csvUrl = process.env.NEXT_PUBLIC_NEWS_DATA_CSV_URL;
+      const csvUrl ="https://docs.google.com/spreadsheets/d/e/2PACX-1vR_C_vzVTpL0_QYFk4WCAJrTSVFdq7_yrxhJDAhDQAqbdJQRfIF4YPND_HyQT2FHOY9jkiL9cZuYtsB/pub?gid=0&single=true&output=csv";
 
       if (!csvUrl) {
         setError("News data source URL is not configured.");

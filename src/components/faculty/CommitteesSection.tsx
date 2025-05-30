@@ -19,7 +19,7 @@ const CommitteesSection = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
-      const csvUrl = process.env.NEXT_PUBLIC_COMMITTEES_DATA_CSV_URL;
+      const csvUrl ="https://docs.google.com/spreadsheets/d/e/2PACX-1vSsQY3f2DMZhFvC7jPPW6mpIYiJuQMM7fYgGtmnROi0gFGbIykpWrcf6EeIaic-LFmzV8r-9AStL9sW/pub?gid=0&single=true&output=csv";
 
       if (!csvUrl) {
         setError("Committees data source URL is not configured.");
