@@ -25,10 +25,10 @@ const AboutHero = () => {
       {/* This text has z-20 in your original code, ensure it's below menu */}
       <div className="relative h-full flex flex-col items-center justify-center text-center text-white p-4 z-[6]"> {/* Changed z-20 to z-[6] or similar */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
-          Discover Radiant High School
+          Discover Radiant High School, Nunna
         </h1>
         <p className="text-lg sm:text-xl md:text-2xl max-w-3xl">
-          Fostering a vibrant community of learners dedicated to academic achievement, character development, and innovative thinking.
+          Radiant High School in Vijayawada empowers students through academic excellence, character building, and future-ready innovation in a dynamic learning environment.
         </p>
       </div>
     </div>

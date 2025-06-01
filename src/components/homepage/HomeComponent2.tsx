@@ -32,7 +32,7 @@ const HomeComponent2 = () => {
           <div className="flex justify-center mb-6 sm:mb-8">
             {/* Consider using Next.js Image component here if image is in public folder and for optimization */}
             <img 
-              src="/small-logo.png" 
+              src="/images/small-logo.png" 
               alt="Radiant High School Logo" 
               className="h-24 sm:h-32 w-auto" // Removed animate-fade-in for now, ensure it's defined if you use it
             />

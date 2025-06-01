@@ -9,6 +9,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    domains: ['radianthighschool.in'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -24,21 +25,3 @@ const nextConfig = {
 
 module.exports = nextConfig;
 
-// If you are using @tailwindcss/aspect-ratio, your tailwind.config.js should have it in plugins:
-/*
-// tailwind.config.js
-module.exports = {
-  content: [
-    "./src/pages/** /*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/** /*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/** /*.{js,ts,jsx,tsx,mdx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [
-    require('@tailwindcss/aspect-ratio'), // Make sure this is installed and added
-    // other plugins...
-  ],
-};
-*/

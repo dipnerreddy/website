@@ -1,30 +1,12 @@
 // src/app/gallery/page.tsx
 import React from 'react';
-import ImageGrid from '@/components/gallery/ImageGrid'; // Assuming this path
-import { v2 as cloudinary } from 'cloudinary';
-
-// Define a more specific type for Cloudinary resource if you want, or parts of it
-interface CloudinaryResourceBasic {
-  public_id: string;
-  secure_url: string;
-  width?: number;
-  height?: number;
-  context?: { custom?: { alt?: string; caption?: string } };
-  filename?: string;
-  format?: string;
-}
-
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
+import ImageGrid from '@/components/gallery/ImageGrid';
+import { parse } from 'csv-parse/sync'; // ✅ Import CSV parser
+import { v4 as uuidv4 } from 'uuid';
 
 export const metadata = {
   title: 'Gallery | Radiant High School',
-  description: 'Explore moments and memories from Radiant High School events and activities.',
+  description: 'Explore moments and memories from Radiant High School events and activities. [Vijayawada Best School]',
 };
 
 // Define the shape of the image data we expect for our components
@@ -39,84 +21,43 @@ export interface GalleryImageType {
 }
 
 // --- TYPE PREDICATE FUNCTION ---
-// This function checks if an item is not null AND asserts its type to GalleryImageType for TypeScript
 function isGalleryImage(item: GalleryImageType | null): item is GalleryImageType {
   return item !== null;
 }
-// --- END OF TYPE PREDICATE FUNCTION ---
+// --- END TYPE PREDICATE FUNCTION ---
 
 async function getGalleryImages(): Promise<GalleryImageType[] | { error: string }> {
-  const FOLDER_NAME = 'radiant_high_gallery';
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQD9JwQNB3ZKCsLgEkVcFY8oZ8ugVsabOYkUG-I1iSZGdYhZp1Kpod908d65h02AFvj_WJVIJTc7ucs/pub?output=csv';
 
   try {
-    console.log(`[SERVER] getGalleryImages: Attempting to fetch from folder: ${FOLDER_NAME}`);
-    
-    const searchResult = await cloudinary.search
-      .expression(`folder:${FOLDER_NAME}`)
-      .sort_by('uploaded_at', 'desc')    
-      .max_results(50)                   
-      .with_field('context')             
-      .execute();
+    const res = await fetch(SHEET_CSV_URL);
+    if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
 
-    const resources: CloudinaryResourceBasic[] = searchResult.resources || [];
+    const csvText = await res.text();
 
-    if (resources.length === 0) {
-      console.warn(`[SERVER] getGalleryImages: No images found in folder '${FOLDER_NAME}'.`);
-      return [];
-    }
-    
-    console.log(`[SERVER] getGalleryImages: Found ${resources.length} resources in folder '${FOLDER_NAME}'.`);
-
-    // Explicitly type the result of map as an array that can contain GalleryImageType or null
-    const mappedImages: (GalleryImageType | null)[] = resources.map((resource: CloudinaryResourceBasic) => {
-      let altText = (resource.context?.custom?.alt) ||
-                    (resource.context?.custom?.caption) ||
-                    (resource.filename ? resource.filename.replace(/[-_]/g, ' ') : '') ||
-                    `Gallery image ${resource.public_id}`;
-      
-      // Check for essential properties. If any are missing, return null for this item.
-      if (resource.public_id == null || resource.secure_url == null || resource.width == null || resource.height == null) {
-        console.warn('[SERVER] getGalleryImages: Resource missing essential properties:', resource.public_id || 'Unknown public_id');
-        return null; 
-      }
-
-      return {
-        id: resource.public_id,
-        url: resource.secure_url,
-        width: resource.width, // width will be number here
-        height: resource.height, // height will be number here
-        alt: altText,
-        public_id: resource.public_id,
-        format: resource.format || '', // Ensure format is always string
-      };
+    const records = parse(csvText, {
+      columns: true,
+      skip_empty_lines: true,
     });
 
-    // --- USE THE TYPE PREDICATE IN THE FILTER ---
-    const images: GalleryImageType[] = mappedImages.filter(isGalleryImage);
-    // --- END OF USING TYPE PREDICATE ---
+   const images: GalleryImageType[] = records.map((row: any) => ({
+  id: row.id && row.id.trim() !== '' ? row.id : uuidv4(),  // Use existing id or generate UUID
+  url: row.url,
+  alt: row.alt || 'Gallery Image',
+  width: 800, // Placeholder width
+  height: 600, // Placeholder height
+  public_id: row.url,
+  format: row.url?.split('.').pop() || 'jpg',
+}));
 
-    console.log(`[SERVER] getGalleryImages: Successfully processed ${images.length} valid images.`);
     return images;
-
   } catch (error: unknown) {
-    console.error('[SERVER] getGalleryImages: Error fetching images from Cloudinary:', error);
-    let errorMessage = 'Failed to fetch images.';
-    if (error instanceof Error) {
-        errorMessage += ` Details: ${error.message}`;
-    } else if (typeof error === 'object' && error !== null && 'error' in error) {
-        // Attempt to parse Cloudinary specific error structure if present
-        const cdError = (error as { error?: { message?: string } }).error;
-        if (cdError && cdError.message) {
-            errorMessage += ` Cloudinary Error: ${cdError.message}`;
-        }
-    } else if (typeof error === 'string') {
-        errorMessage += ` Details: ${error}`;
-    }
-    return { error: errorMessage };
+    console.error('Error fetching Google Sheet CSV:', error);
+    return { error: 'Failed to load image data from Google Sheets.' };
   }
 }
 
-// This is a React Server Component (RSC) by default in the App Router
+// React Server Component
 export default async function GalleryPage() {
   console.log("[PAGE] GalleryPage: Fetching initial image data on the server...");
   const initialImagesData = await getGalleryImages();

@@ -13,7 +13,7 @@ const LogoBar = () => {
           {/* Desktop Logo - This is the only logo needed now if InfoBar is only on lg+ */}
           <div className="relative w-full h-full max-w-[1440px]">
              <Image
-              src="/logobar.png" // Path to your desktop logo
+              src="/images/logobar.png" // Path to your desktop logo
               alt="Company Logo"
               layout="fill"
               objectFit="contain"

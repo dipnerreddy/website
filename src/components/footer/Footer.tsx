@@ -88,7 +88,7 @@ export const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <img 
-                  src="/small-logo.png" 
+                  src="/images/small-logo.png" 
                   alt="Radiant High School Logo" 
                   className="h-12 w-auto"
                 />
