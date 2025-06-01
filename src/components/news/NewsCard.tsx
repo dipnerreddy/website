@@ -1,0 +1,70 @@
+// src/components/news/NewsCard.tsx
+import React from 'react';
+import NextImage from 'next/image'; // Aliased to avoid potential conflicts
+
+interface NewsArticleForCard {
+  ID: string; // Keep ID in the interface, it's part of the article data
+  Headline: string;
+  Caption: string;
+  ImageUrl: string;
+  DatePublished: string;
+  Category?: string;
+  FullContent?: string;
+}
+
+interface NewsCardProps {
+  article: NewsArticleForCard;
+  onCardClick: (article: NewsArticleForCard) => void;
+}
+
+const NewsCard: React.FC<NewsCardProps> = ({
+  article,
+  onCardClick,
+}) => {
+  // ID is part of the 'article' object, which is used in onCardClick.
+  // The ESLint error was for the DESTRUCTURED 'ID' variable if it wasn't used.
+  // By not destructuring ID here, we avoid that specific unused variable warning,
+  // as 'article.ID' is implicitly used when 'article' is passed to onCardClick.
+  const { Headline, Caption, ImageUrl, DatePublished, Category } = article;
+
+  return (
+    <div
+      className="bg-white rounded-lg shadow-lg overflow-hidden transition-all hover:shadow-xl group border border-gray-200 flex flex-col h-full cursor-pointer"
+      onClick={() => onCardClick(article)}
+    >
+      <div className="relative w-full h-48 bg-gray-200 group-hover:opacity-90 transition-opacity">
+        {ImageUrl ? (
+          <NextImage
+            src={ImageUrl}
+            alt={Headline}
+            fill
+            style={{ objectFit: 'cover' }}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400">
+            No Image
+          </div>
+        )}
+      </div>
+      <div className="p-4 md:p-5 flex flex-col flex-grow">
+        {Category && (
+          <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full mb-2 self-start">
+            {Category}
+          </span>
+        )}
+        <h3 className="text-lg md:text-xl font-semibold text-slate-800 mb-2 group-hover:text-blue-600 transition-colors">
+          {Headline}
+        </h3>
+        <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 mb-3 flex-grow">
+          {Caption}
+        </p>
+        <p className="text-xs text-slate-400 mt-auto">
+          Published: {new Date(DatePublished).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default NewsCard;
