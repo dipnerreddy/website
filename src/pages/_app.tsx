@@ -1,15 +1,26 @@
-// src/pages/_app.tsx
-// import 'src/app/globals.css'; // Or '../styles/globals.css'
 import '../app/globals.css';
 import type { AppProps } from 'next/app';
-import Header from '@/components/header/Header'; // Adjust path if needed
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import Header from '@/components/header/Header';
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+  const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+
+  const isReload = navEntry?.type === 'reload';
+
+  if (isReload && router.pathname !== '/') {
+    router.replace('/');
+  }
+}, []);
+
   return (
     <>
       <Header />
       <Component {...pageProps} />
-      {/* You might also want a Footer component here later */}
     </>
   );
 }

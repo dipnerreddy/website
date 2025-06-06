@@ -12,13 +12,19 @@ const LogoBar = () => {
         <Link href="/" aria-label="Homepage" className="flex items-center justify-center h-full">
           {/* Desktop Logo - This is the only logo needed now if InfoBar is only on lg+ */}
           <div className="relative w-full h-full max-w-[1440px]">
-             <Image
+             {/* <Image
               src="/images/logobar.png" // Path to your desktop logo
               alt="Company Logo"
               layout="fill"
               objectFit="contain"
               priority
+            /> */}
+            <img 
+              src="/images/logobar.png" 
+              alt="Company Logo" 
+              className="w-full h-auto" 
             />
+
           </div>
         </Link>
       </div>

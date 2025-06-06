@@ -1,9 +1,7 @@
-// src/components/news/NewsCard.tsx
 import React from 'react';
-import NextImage from 'next/image'; // Aliased to avoid potential conflicts
 
 interface NewsArticleForCard {
-  ID: string; // Keep ID in the interface, it's part of the article data
+  ID: string;
   Headline: string;
   Caption: string;
   ImageUrl: string;
@@ -21,10 +19,6 @@ const NewsCard: React.FC<NewsCardProps> = ({
   article,
   onCardClick,
 }) => {
-  // ID is part of the 'article' object, which is used in onCardClick.
-  // The ESLint error was for the DESTRUCTURED 'ID' variable if it wasn't used.
-  // By not destructuring ID here, we avoid that specific unused variable warning,
-  // as 'article.ID' is implicitly used when 'article' is passed to onCardClick.
   const { Headline, Caption, ImageUrl, DatePublished, Category } = article;
 
   return (
@@ -34,12 +28,11 @@ const NewsCard: React.FC<NewsCardProps> = ({
     >
       <div className="relative w-full h-48 bg-gray-200 group-hover:opacity-90 transition-opacity">
         {ImageUrl ? (
-          <NextImage
+          <img
             src={ImageUrl}
             alt={Headline}
-            fill
-            style={{ objectFit: 'cover' }}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="w-full h-full object-cover"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -60,7 +53,11 @@ const NewsCard: React.FC<NewsCardProps> = ({
           {Caption}
         </p>
         <p className="text-xs text-slate-400 mt-auto">
-          Published: {new Date(DatePublished).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          Published: {new Date(DatePublished).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })}
         </p>
       </div>
     </div>

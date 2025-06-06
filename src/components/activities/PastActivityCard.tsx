@@ -1,24 +1,22 @@
 // src/components/activities/PastActivityCard.tsx
 import React from 'react';
-import Image from 'next/image';
 
 interface PastActivityCardProps {
   imageUrl: string;
   name: string;
-  date?: string; // Optional date/year
-  description?: string; // Optional short blurb
+  date?: string;
+  description?: string;
 }
 
 const PastActivityCard: React.FC<PastActivityCardProps> = ({ imageUrl, name, date, description }) => {
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden group">
       <div className="relative w-full h-48 sm:h-56">
-        <Image
-          src={imageUrl || '/images/placeholder.png'} // Fallback placeholder
+        <img
+          src={imageUrl || '/images/placeholder.png'}
           alt={`Image of ${name}`}
-          layout="fill"
-          objectFit="cover"
-          className="transition-transform duration-300 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          loading="lazy"
         />
       </div>
       <div className="p-4">

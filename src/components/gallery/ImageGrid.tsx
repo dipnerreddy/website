@@ -102,14 +102,22 @@ const ImageGrid: React.FC<ImageGridProps> = ({ initialImagesData }) => {
               onClick={() => openLightboxOnSlide(index + 1)}
               title={`View ${image.alt}`}
             >
-              <Image
+              {/* <Image
                 src={image.url}
                 alt={image.alt}
                 fill 
                 className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 20vw"
                 priority={index < 10} 
+              /> */}
+
+              <img
+                src={image.url}
+                alt={image.alt || 'Gallery image'}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                loading={index < 10 ? 'eager' : 'lazy'}
               />
+
             </div>
           ))}
         </div>
